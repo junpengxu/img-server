@@ -3,6 +3,7 @@
 # @Author  : xu.junpeng
 
 WORK_DIR = '/Users/xujunpeng/xcx-img'
+SERVER_PORT = 8002
 
 SUCC_CODE = 20000
 SUCC_MSG = "图片上传成功"
@@ -10,6 +11,5 @@ SUCC_MSG = "图片上传成功"
 FAIL_CODE = 200001
 FAIL_MSG = "图片上传失败"
 
-REDIS_HOST = "localhost"
-REDIS_PORT = "6379"
-REDIS_TOEKN_DB = 15
+USER_VALID_CODE = 20002
+USER_VALID_MSG = "非正常用户"
