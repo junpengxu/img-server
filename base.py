@@ -21,7 +21,7 @@ import requests
 
 class BaseView(MethodView):
     def __init__(self, *args, **kwargs):
-        self.__ckeck_login_uri = "http://localhost:8000/xcx/check_user_valid"
+        self.__ckeck_login_uri = "https://weakee.com/xcx/check_user_valid"
         self.__setattr__('request', request)
         self.__setattr__('session_id', request.headers.get("Token"))
         request_logger.info("request json params is:{}".format({} if not self.request.data else self.request.json))
@@ -29,6 +29,10 @@ class BaseView(MethodView):
         super(BaseView, self).__init__(*args, **kwargs)
 
     def check_login(self):
+        """
+        这是个临时服务，目前由于微信要进行图片检查，需要携带access_token, 所以借用这个接口返回请求的uri
+        :return:
+        """
         if not self.session_id:
             return False
         else:
@@ -39,7 +43,7 @@ class BaseView(MethodView):
                 ).json()
                 request_logger.info(res)
                 assert res['code'] == 20000
-                return True
+                return res['data']
             except Exception as e:
                 request_logger.error("check user raise error, session id is {}".format(self.session_id))
                 request_logger.error(traceback.format_exc())
@@ -55,5 +59,9 @@ class BaseView(MethodView):
         )
 
     def dispatch_request(self, *args, **kwargs):
-        if not self.check_login(): return jsonify({"code": USER_VALID_CODE, "message": USER_VALID_MSG, "data": None})
+        res = self.check_login()
+        if not res:
+            return jsonify({"code": USER_VALID_CODE, "message": USER_VALID_MSG, "data": None})
+        else:
+            self.img_check_uri = res
         return super(BaseView, self).dispatch_request(*args, **kwargs)
