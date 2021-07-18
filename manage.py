@@ -8,7 +8,6 @@ from flask import Flask
 from base import BaseView
 from logger import request_logger
 from config import WORK_DIR, SUCC_CODE, SUCC_MSG, FAIL_CODE, FAIL_MSG, IMG_VALID_CODE, IMG_VALID_MSG
-
 app = Flask(__name__)
 app.config.from_object("config")
 
@@ -17,16 +16,17 @@ class ImgUpload(BaseView):
     def post(self):
         try:
             file = self.request.files['file']
-            # 进行图片检查
-            try:
-                self.wx_img_sec_check(self.img_check_uri, file)
-            except AssertionError:
-                return self.formattingData(code=IMG_VALID_CODE, msg=IMG_VALID_MSG, data=None)
-            except Exception as e:
-                request_logger.error(traceback.format_exc())
             business = self.request.args.get("business", "xcx")
             filename = self.gen_file_name(business=business, filetype=file.filename.split('.')[-1])
             file.save(os.path.join(WORK_DIR + filename))
+            with open(os.path.join(WORK_DIR + filename),'rb+') as new_file:
+            # 进行图片检查
+                try:
+                    self.wx_img_sec_check(self.img_check_uri, new_file)
+                except AssertionError:
+                    return self.formattingData(code=IMG_VALID_CODE, msg=IMG_VALID_MSG, data=None)
+                except Exception as e:
+                    request_logger.error(traceback.format_exc())
             return self.formattingData(code=SUCC_CODE, msg=SUCC_MSG, data=filename)
         except Exception as e:
             request_logger.error(traceback.format_exc())
@@ -41,6 +41,7 @@ class ImgUpload(BaseView):
     @staticmethod
     def wx_img_sec_check(uri, file):
         res = requests.post(uri, files={"media": file}).json()
+        print(res)
         assert res["errcode"] == 0
 
 
